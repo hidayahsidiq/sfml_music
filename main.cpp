@@ -1,81 +1,62 @@
-
 #include <SFML/Audio.hpp>
 #include <iostream>
-
-
-void playMusic(const std::filesystem::path& filename)
-{
-    // Load an ogg,flac,mp3 music file
-    // full path with "/" not "\"
-    sf::Music music("G:/Music/13 The 1975 The Sound.mp3");
-
-    // Display music information
-    std::cout << filename << ":" << '\n'
-              << " " << music.getDuration().asSeconds() << " seconds" << '\n'
-              << " " << music.getSampleRate() << " samples / sec" << '\n'
-              << " " << music.getChannelCount() << " channels" << '\n';
-
-    // Play it
-    music.play();
-
-    // Loop while the music is playing
-    while (music.getStatus() == sf::Music::Status::Playing)
-    {
-        // Leave some CPU time for other processes
-        sf::sleep(sf::milliseconds(100));
-
-        // Display the playing position
-        std::cout << "\rPlaying... " << music.getPlayingOffset().asSeconds() << " sec        " << std::flush;
-    }
-
-    std::cout << '\n' << std::endl;
-}
-
-void DisplayMenu(){
-std::cout << "Menu Options : " << std::endl;
-std::cout << "1. Option 1" << std::endl;
-std::cout << "2. Option 2" << std::endl;
-std::cout << "3. Option 3" << std::endl;
-std::cout << "4. Exit" << std::endl;
-std::cout << "Enter Your Choice : " ;
-}
+#include <vector>
+#include <string>
 
 int main()
 {
-/*
-    int choice ;
-    do {
-        DisplayMenu();
-        std::cin >> choice;
-        switch (choice){
-        case 1:
-            std::cout << "You choose option 1" << std::endl;
-            break;
-        case 2:
-            std::cout << "You choose option 2" << std::endl;
-            break;
-        case 3:
-            std::cout << "You choose option 3" << std::endl;
-            break;
-        case 4:
-            std::cout << "Exiting . . ." << std::endl;
-            break;
-        default:
-            std::cout << "Please try Again !" << std::endl;
+    // Daftar playlist (bisa campur format .ogg, .mp3, .wav)
+    std::vector<std::string> playlist = {
+        "C:/Users/sidiq/Music/The Killers - Mr. Brightside (Official Music Video).mp3",
+        "C:/Users/sidiq/Music/Post Malone, Swae Lee - Sunflower (Spider-Man Into the Spider-Verse) (Official Video).mp3",
+        "C:/Users/sidiq/Music/Owl City - To The Sky (Official Music Video).mp3"
+    };
+
+    if (playlist.empty()) {
+        std::cout << "Playlist kosong!" << std::endl;
+        return -1;
+    }
+
+    sf::Music music;
+    int currentIndex = 0;
+
+    auto loadSong = [&](int index) {
+        if (!music.openFromFile(playlist[index])) {
+            std::cout << "Gagal memuat: " << playlist[index] << std::endl;
+            return false;
         }
-    } while(choice != 4);
-    */
-    // Play music from an ogg file
-    //playMusic("test.ogg");
+        std::cout << "Now Playing: " << playlist[index] << std::endl;
+        music.play();
+        return true;
+    };
 
-    // Play music from a flac file
-    //playMusic("ding.flac");
+    // Load lagu pertama
+    if (!loadSong(currentIndex)) return -1;
 
-    // Play music from a mp3 file
-    playMusic("13 The 1975 The Sound.mp3");
+    // Menu loop
+    char cmd;
+    while (true) {
+        std::cout << "\n=== MENU ===\n";
+        std::cout << "[P]lay  [U]pause  [S]top  [N]ext  [B]ack  [Q]uit\n";
+        std::cout << "Pilihan: ";
+        std::cin >> cmd;
 
-    // Wait until the user presses 'enter' key
-    std::cout << "Press enter to exit..." << std::endl;
-    std::cin.ignore(10000, '\n');
+        if (cmd == 'P' || cmd == 'p') {
+            music.play();
+        } else if (cmd == 'U' || cmd == 'u') {
+            music.pause();
+        } else if (cmd == 'S' || cmd == 's') {
+            music.stop();
+        } else if (cmd == 'N' || cmd == 'n') {
+            currentIndex = (currentIndex + 1) % playlist.size();
+            if (!loadSong(currentIndex)) continue;
+        } else if (cmd == 'B' || cmd == 'b') {
+            currentIndex = (currentIndex - 1 + playlist.size()) % playlist.size();
+            if (!loadSong(currentIndex)) continue;
+        } else if (cmd == 'Q' || cmd == 'q') {
+            break;
+        }
+    }
+
     return 0;
 }
